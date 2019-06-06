@@ -2,7 +2,7 @@ version: '3'
 networks:
     network_local:
         driver: ${NETWORK_DRIVER}
-
+volumes:
   etcd:
   cronsun:
   
@@ -28,9 +28,9 @@ services:
       - -name
       - cronsun1
       - -advertise-client-urls
-      - http://${ETCD_HOST}:2379
+      - http://${ETCD_HOST}:${ETCD_PORT}
       - -listen-client-urls
-      - http://0.0.0.0:2379
+      - http://0.0.0.0:${ETCD_PORT}
     networks:
       - network_local
     
