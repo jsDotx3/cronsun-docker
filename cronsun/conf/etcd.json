@@ -1,0 +1,8 @@
+{
+    "Endpoints":[
+        "http://etcd:2379"
+    ],
+    "Username":"",
+    "Password":"",
+    "DialTimeout": 2
+}

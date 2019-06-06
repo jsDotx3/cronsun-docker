@@ -1,0 +1,71 @@
+version: '3'
+networks:
+    network_local:
+        driver: ${NETWORK_DRIVER}
+
+  etcd:
+  cronsun:
+  
+services:
+  
+  mongo:
+    image: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DATABASE_INIT}
+    ports:
+      - ${MONGO_PORT}:27017
+    networks:
+      - network_local
+
+  etcd:
+    image: quay.io/coreos/etcd
+    volumes:
+      - ./etcd-data:/etcd
+    command:
+      - etcd
+      - -name
+      - cronsun1
+      - -advertise-client-urls
+      - http://${ETCD_HOST}:2379
+      - -listen-client-urls
+      - http://0.0.0.0:2379
+    networks:
+      - network_local
+    
+  etcd-browser:
+    build: ./etcd-browser
+    environment:
+      - ETCD_HOST=${ETCD_HOST}
+      - ETCD_PORT=${ETCD_PORT}
+    ports:
+      - ${ETCD_BROWSER_PORT}:8000
+    depends_on:
+      - etcd
+    networks:
+      - network_local
+
+  cronsun-node:
+    image: alpine:latest
+    volumes:
+      - ./cronsun:/cronsun
+    depends_on:
+      - etcd
+      - mongo
+    command: /cronsun/cronnode -conf /cronsun/conf/base.json
+    networks:
+      - network_local
+
+  cronsun-web:
+    image: alpine:latest
+    ports:
+      - ${CRONSUN_WEB_PORT}:7079
+    volumes:
+      - ./cronsun:/cronsun
+    depends_on:
+      - etcd
+      - mongo
+    command: /cronsun/cronweb -conf /cronsun/conf/base.json
+    networks:
+      - network_local
